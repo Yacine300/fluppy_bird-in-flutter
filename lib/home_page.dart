@@ -5,6 +5,7 @@ import 'package:flappy_bard/barriers.dart';
 import 'package:flappy_bard/bird.dart';
 import 'package:flappy_bard/coverscreen.dart';
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -17,36 +18,76 @@ class _HomePageState extends State<HomePage> {
   // bird variables
   static double birdY = 0;
   double initialPos = birdY;
-  double height = 0;
-  double time = 0;
-  double gravity = -4.9; // how strong the gravity is
-  double velocity = 3.5; // how strong the jump is
-  double birdWidth = 0.1; // out of 2, 2 being the entire width of the screen
-  double birdHeight = 0.1; // out of 2, 2 being the entire height of the screen
+  late double height;
+  late double time;
+  // double shipPosition = 0.5;
+  late double gravity; // how strong the gravity is
+  late double velocity; // how strong the jump is
 
-  // game settings
+  // game variables settings
   bool gameHasStarted = false;
+  double score = 0;
+  late List<List<double>> barrierHeight;
+
+  // music variable
+  late AudioPlayer audioPlayer;
+  //late AudioPlayer jumpPlayer;
 
   // barrier variables
-  static List<double> barrierX = [2, 2 + 1.5];
+  static List<double> barrierX = [1, 1 + 1.5];
   static double barrierWidth = 0.5; // out of 2
-  List<List<double>> barrierHeight = [
-    // out of 2, where 2 is the entire height of the screen
-    // [topHeight, bottomHeight]
-    [0.6, 0.4],
-    [0.4, 0.6],
-  ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    initialPos = birdY;
+    height = 0;
+    time = 0.11;
+
+    gravity = -3.5;
+    velocity = 2;
+
+    audioPlayer = AudioPlayer();
+    //jumpPlayer = AudioPlayer();
+    playBackgroundAudioFromAssets();
+    luchOnce();
+
+    barrierHeight = [
+      // out of 2, where 2 is the entire height of the screen
+      // [topHeight, bottomHeight]
+      [.6, .4],
+      [.4, .6],
+      [.8, .2],
+      [.2, .8],
+    ];
+  }
+
+  Future<void> playBackgroundAudioFromAssets() async {
+    await audioPlayer
+        .setAudioSource(AudioSource.asset('assets/files/Gamemusic.mp3'))
+        .then((_) =>
+            audioPlayer.setVolume(0.05).then((value) => audioPlayer.play()));
+  }
+
+  /*Future<void> jumpSoundEffect() async {
+    await jumpPlayer
+        .setAudioSource(AudioSource.asset('assets/files/jump.mp3'))
+        .then((_) => jumpPlayer.play());
+  }*/
 
   void startGame() {
     gameHasStarted = true;
     Timer.periodic(Duration(milliseconds: 10), (timer) {
       // a real physical jump is the same as an upside down parabola
       // so this is a simple quadratic equation
-      height = gravity * time * time + velocity * time;
 
-      setState(() {
-        birdY = initialPos - height;
-      });
+      height = gravity * time * time + velocity * time;
+      birdY = initialPos - height;
+
+      /* setState(() {
+        shipPosition -= 0.0005;
+      });*/
 
       // check if bird is dead
       if (birdIsDead()) {
@@ -55,35 +96,59 @@ class _HomePageState extends State<HomePage> {
       }
 
       // keep the map moving (move barriers)
-      moveMap();
 
-      // keep the time going!
-      time += 0.01;
-    });
-  }
-
-  void moveMap() {
-    for (int i = 0; i < barrierX.length; i++) {
       // keep barriers moving
-      setState(() {
-        barrierX[i] -= 0.005;
-      });
 
+      barrierX[0] -= 0.01;
+      barrierX[1] -= 0.01;
       // if barrier exits the left part of the screen, keep it looping
-      if (barrierX[i] < -1.5) {
-        barrierX[i] += 3;
+      if (barrierX[0] < -1.5) {
+        barrierX[0] += 3;
       }
-    }
+
+      if (barrierX[1] < -1.5) {
+        barrierX[1] += 3;
+      }
+
+      // add 1 to score
+      if ((((barrierX[0] > -0.1) && (barrierX[0] < 0.1)) ||
+              ((barrierX[1] > -0.1) && (barrierX[1] < 0.1))) &&
+          !birdIsDead()) {
+        setState(() {
+          score += 0.08;
+        });
+      }
+      // keep the time going!
+      setState(() {
+        time += 0.02;
+      });
+    });
   }
 
   void resetGame() {
     Navigator.pop(context); // dismisses the alert dialog
     setState(() {
+      //  shipPosition = 0.5;
       birdY = 0;
+      score = 0;
+      height = 0;
       gameHasStarted = false;
-      time = 0;
+      time = .2;
       initialPos = birdY;
-      barrierX = [2, 2 + 1.5];
+      barrierX = [1, 1 + 1.5];
+    });
+  }
+
+  void luchOnce() {
+    setState(() {
+      //  shipPosition = 0.5;
+      birdY = 0;
+      score = 0;
+      height = 0;
+      gameHasStarted = false;
+      time = .2;
+      initialPos = birdY;
+      barrierX = [1, 1 + 1.5];
     });
   }
 
@@ -96,7 +161,7 @@ class _HomePageState extends State<HomePage> {
             backgroundColor: Colors.brown,
             title: Center(
               child: Text(
-                "G A M E  O V E R",
+                "GAME  OVER",
                 style: TextStyle(color: Colors.white),
               ),
             ),
@@ -121,10 +186,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   void jump() {
-    setState(() {
-      time = 0;
-      initialPos = birdY;
-    });
+    // jumpSoundEffect;
+
+    time = 0.11;
+    initialPos = birdY;
   }
 
   bool birdIsDead() {
@@ -136,10 +201,10 @@ class _HomePageState extends State<HomePage> {
     // hits barriers
     // checks if bird is within x coordinates and y coordinates of barriers
     for (int i = 0; i < barrierX.length; i++) {
-      if (barrierX[i] <= birdWidth &&
-          barrierX[i] + barrierWidth >= -birdWidth &&
+      if (barrierX[i] <= 0.1 &&
+          barrierX[i] + barrierWidth >= -0.1 &&
           (birdY <= -1 + barrierHeight[i][0] ||
-              birdY + birdHeight >= 1 - barrierHeight[i][1])) {
+              birdY + 0.1 >= 1 - barrierHeight[i][1])) {
         return true;
       }
     }
@@ -149,23 +214,48 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: gameHasStarted ? jump : startGame,
-      child: Scaffold(
-        body: Column(
-          children: [
-            Expanded(
-              flex: 3,
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Column(
+        children: [
+          Expanded(
+            flex: 3,
+            child: GestureDetector(
+              onTap: gameHasStarted ? jump : startGame,
               child: Container(
-                color: Colors.blue,
+                decoration: BoxDecoration(
+                    color: Colors.black,
+                    image: DecorationImage(
+                        image: AssetImage('assets/images/sky3.png'),
+                        fit: BoxFit.cover)),
                 child: Center(
                   child: Stack(
                     children: [
+                      Container(
+                        height: 300,
+                        alignment: Alignment(-0.8, -1.8),
+                        child: Image.asset(
+                          'assets/images/moon.png',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      /* Transform.rotate(
+                        angle: shipPosition * 20 * (3.14159265359 / 180),
+                        child: Container(
+                          height: 100,
+                          alignment: Alignment(shipPosition * 2, shipPosition),
+                          child: Image.asset(
+                            'assets/images/fall.png',
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),*/
+
                       // bird
                       MyBird(
                         birdY: birdY,
-                        birdWidth: birdWidth,
-                        birdHeight: birdHeight,
+                        birdWidth: 0.1,
+                        birdHeight: 0.1,
                       ),
 
                       // tap to play
@@ -193,6 +283,7 @@ class _HomePageState extends State<HomePage> {
                         barrierWidth: barrierWidth,
                         barrierHeight: barrierHeight[0][0],
                         isThisBottomBarrier: false,
+                        flip: false,
                       ),
 
                       // Bottom barrier 0
@@ -201,6 +292,7 @@ class _HomePageState extends State<HomePage> {
                         barrierWidth: barrierWidth,
                         barrierHeight: barrierHeight[0][1],
                         isThisBottomBarrier: true,
+                        flip: true,
                       ),
 
                       // Top barrier 1
@@ -209,6 +301,7 @@ class _HomePageState extends State<HomePage> {
                         barrierWidth: barrierWidth,
                         barrierHeight: barrierHeight[1][0],
                         isThisBottomBarrier: false,
+                        flip: false,
                       ),
 
                       // Bottom barrier 1
@@ -217,58 +310,180 @@ class _HomePageState extends State<HomePage> {
                         barrierWidth: barrierWidth,
                         barrierHeight: barrierHeight[1][1],
                         isThisBottomBarrier: true,
+                        flip: true,
                       ),
                     ],
                   ),
                 ),
               ),
             ),
-            Expanded(
-              child: Container(
-                color: Colors.brown,
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '0',
-                            style: TextStyle(color: Colors.white, fontSize: 35),
-                          ),
-                          SizedBox(
-                            height: 15,
-                          ),
-                          Text(
-                            'S C O R E',
-                            style: TextStyle(color: Colors.white, fontSize: 20),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '10',
-                            style: TextStyle(color: Colors.white, fontSize: 35),
-                          ),
-                          SizedBox(
-                            height: 15,
-                          ),
-                          Text(
-                            'B E S T',
-                            style: TextStyle(color: Colors.white, fontSize: 20),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+          ),
+          SecondPart(score: score.toInt()),
+        ],
+      ),
+    );
+  }
+}
+
+class SecondPart extends StatelessWidget {
+  final score;
+  const SecondPart({
+    required this.score,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+        flex: 0,
+        child: Stack(
+          children: [
+            Column(
+              children: [
+                FirstLigne(),
+                OneLigne(),
+                OneLigne(),
+                OneLigne(),
+              ],
             ),
+            GameInfo(score: score)
           ],
+        ));
+  }
+}
+
+class FirstLigne extends StatelessWidget {
+  const FirstLigne({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          height: 20,
+          width: 120,
+          color: Colors.black,
+          child: Image.asset(
+            'assets/images/ground.png',
+            fit: BoxFit.fitWidth,
+          ),
         ),
+        Container(
+          height: 20,
+          width: 120,
+          color: Colors.blue,
+          child: Image.asset(
+            'assets/images/ground.png',
+            fit: BoxFit.fitWidth,
+          ),
+        ),
+        Container(
+          height: 20,
+          width: 120,
+          color: Colors.blue,
+          child: Image.asset(
+            'assets/images/ground.png',
+            fit: BoxFit.fitWidth,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class OneLigne extends StatelessWidget {
+  const OneLigne({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SizedBox(
+          height: 72,
+          width: 72,
+          child: Image.asset('assets/images/ground2.png'),
+        ),
+        SizedBox(
+          height: 72,
+          width: 72,
+          child: Image.asset('assets/images/ground2.png'),
+        ),
+        SizedBox(
+          height: 72,
+          width: 72,
+          child: Image.asset('assets/images/ground2.png'),
+        ),
+        SizedBox(
+          height: 72,
+          width: 72,
+          child: Image.asset('assets/images/ground2.png'),
+        ),
+        SizedBox(
+          height: 72,
+          width: 72,
+          child: Image.asset('assets/images/ground2.png'),
+        ),
+      ],
+    );
+  }
+}
+
+class GameInfo extends StatelessWidget {
+  final score;
+  const GameInfo({
+    required this.score,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 200,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Score',
+                style: TextStyle(
+                    fontFamily: 'Game', color: Colors.white, fontSize: 18),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Text(
+                score.toString(),
+                style: TextStyle(
+                    fontFamily: 'Game', color: Colors.white, fontSize: 22),
+              )
+            ],
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Record',
+                style: TextStyle(
+                    fontFamily: 'Game', color: Colors.white, fontSize: 18),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Text(
+                '0',
+                style: TextStyle(
+                    fontFamily: 'Game', color: Colors.white, fontSize: 22),
+              )
+            ],
+          )
+        ],
       ),
     );
   }

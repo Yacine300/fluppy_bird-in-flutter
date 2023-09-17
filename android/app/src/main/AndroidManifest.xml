@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.flappy_bard">
    <application
-        android:label="flappy_bard"
+        android:label="flappy_bird"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

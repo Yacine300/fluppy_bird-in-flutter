@@ -1,6 +1,6 @@
 // ignore_for_file: prefer_const_constructors
+import 'package:flappy_bard/init_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flappy_bard/home_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,8 +16,9 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        fontFamily: 'Game',
       ),
-      home: HomePage(),
+      home: Init(),
     );
   }
 }

@@ -7,24 +7,35 @@ class MyBarrier extends StatelessWidget {
   final barrierHeight; // proportion of the screenheight
   final barrierX;
   final bool isThisBottomBarrier;
+  bool flip;
 
   MyBarrier(
       {this.barrierHeight,
       this.barrierWidth,
+      required this.flip,
       required this.isThisBottomBarrier,
       this.barrierX});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 0),
+      curve: Curves.linear,
       alignment: Alignment((2 * barrierX + barrierWidth) / (2 - barrierWidth),
           isThisBottomBarrier ? 1 : -1),
-      child: Container(
-        width: MediaQuery.of(context).size.width * barrierWidth / 2,
-        height: MediaQuery.of(context).size.height * 3 / 4 * barrierHeight / 2,
-        decoration: BoxDecoration(
-          color: Colors.green,
-          borderRadius: BorderRadius.circular(10),
+      child: RotatedBox(
+        quarterTurns: flip ? 2 : 0,
+        child: Container(
+          width: MediaQuery.of(context).size.width * barrierWidth / 2,
+          height:
+              MediaQuery.of(context).size.height * 3 / 4 * barrierHeight / 2,
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+                image: AssetImage(
+                  'assets/images/tunel4.png',
+                ),
+                fit: BoxFit.cover),
+          ),
         ),
       ),
     );
