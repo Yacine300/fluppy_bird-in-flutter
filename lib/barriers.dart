@@ -24,7 +24,7 @@ class MyBarrier extends StatelessWidget {
       alignment: Alignment((2 * barrierX + barrierWidth) / (2 - barrierWidth),
           isThisBottomBarrier ? 1 : -1),
       child: RotatedBox(
-        quarterTurns: flip ? 2 : 0,
+        quarterTurns: !flip ? 2 : 0,
         child: Container(
           width: MediaQuery.of(context).size.width * barrierWidth / 2,
           height:
@@ -32,7 +32,7 @@ class MyBarrier extends StatelessWidget {
           decoration: const BoxDecoration(
             image: DecorationImage(
                 image: AssetImage(
-                  'assets/images/tunel4.png',
+                  'assets/images/flame.gif',
                 ),
                 fit: BoxFit.cover),
           ),

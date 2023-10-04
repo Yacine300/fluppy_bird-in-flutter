@@ -8,10 +8,11 @@ class MyCoverScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      alignment: Alignment(0, -0.5),
+      padding: const EdgeInsets.symmetric(vertical: 90),
+      alignment: Alignment.bottomCenter,
       child: Text(
         gameHasStarted ? '' : 'TAP TO PLAY',
-        style: TextStyle(color: Colors.white, fontSize: 18),
+        style: const TextStyle(color: Colors.white, fontSize: 18),
       ),
     );
   }
